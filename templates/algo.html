@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<br>
+<div class="card">
+  <div class="card-header">
+    Featured
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">13 SMA</h5>
+    <p class="card-text">Buy when above daily 13SMA, pullback in the previous candle and price goes over 55%
+    over the previous daily range and vice versa.
+    </p>
+    
+    <form method="POST" action="/algo/">
+      {% csrf_token %}
+      <input type="hidden" name="input" id="activate" value="">
+    </form>
+
+    <div class = "container">
+      <div class="row">
+    
+          <div class="col">
+            <h3>Current price</h3>
+            <h3 onload="loader()" id="ltp"></h3>  
+         </div>
+        
+        <div class="col">
+          <h3>Entry Price</h3>
+          <h2>{{entry_price}}</h2>
+        </div>
+        <div class="col">
+          <h3>Exit Price</h3>
+          <h2>{{exit_price}}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Trend</th>
+          <th scope="col">Pulback</th>
+          <th scope="col">Previous Range</th>
+          <th scope="col">Entry</th>
+          <th scope="col">Exit</th>
+          <th scope="col">SMA</th>
+          <th scope="col">Risk</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id='trend'>{{trend}}</td>
+          <td>{{pullback}}</td>
+          <td>{{day_range}}</td>
+          <td>{{entry_price}}</td>
+          <td>{{exit_price}}</td>
+          <td>{{sma}}</td>
+          <td>{{risk}}</td>
+
+
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+</div>
+<script type="text/javascript" src="{%static 'js/kite/ticker.js' %}"></script>
+<script type="text/javascript">  
+    var ticker = new KiteTicker({api_key: "{{api_key}}", access_token: "{{access_token}}"});
+    ticker.on("ticks", onTicks);
+    ticker.on("connect", subscribe);
+
+    
+    function onTicks(ticks) {
+      var t = ticks[0]
+      document.getElementById("ltp").innerHTML = t["last_price"];
+    }
+
+    function subscribe() {
+      var items = [{{instrument_token}}];
+      ticker.subscribe(items);
+      ticker.setMode(ticker.modeLTP, items);
+    }
+    
+    ticker.connect();
+    
+    function sendSignal(){
+      var xhr = new XMLHttpRequest();
+      var url = "/signal_buy/";
+      xhr.open('GET', url, true);
+      xhr.send();
+    }
+
+    function sendSignalExit(){
+      var xhr = new XMLHttpRequest();
+      var url = "/signal_exit/";
+      xhr.open('GET', url, true);
+      xhr.send();
+    }
+    
+    var condition = true;
+    
+    var signal = {{signal}};
+    var entry_price = {{entry_price}};
+    var exit_price = {{exit_price}};
+    
+    while(condition){
+      var ltp = document.getElementById('ltp').innerHTML;
+      if (signal == 'buy'){
+        if (ltp >= entry_price){
+          sendSignal();
+          condition = false;
+        }
+      }else if (signal == 'sell') {
+        if (ltp <= entry_price){
+          sendSignal();
+          condition = false;
+        }
+      }
+
+     
+    }
+    
+
+</script>
+
+
+
+
+
+{% endblock %}

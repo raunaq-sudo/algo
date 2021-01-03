@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Material input -->
+
+<br>
+<form method="POST" action='/start/'>
+    {% csrf_token %}
+    <button type="button" class="btn btn-primary container-fluid" onclick="loginPage()">Login</button>
+<div class="md-form">
+    <input type="text" id="form1" class="form-control" name="token">
+    <label for="form1">Enter Request Token</label>
+</div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>    
+<br>
+<h7>LOGIN STATUS: {{sd.flag}}</h7>
+<script type="text/javascript">
+    function loginPage(){
+        window.open('{{ sd.login_url }}',"LoginPage", "width=1000, height=1000")
+    }
+
+</script>
+{% endblock %}
